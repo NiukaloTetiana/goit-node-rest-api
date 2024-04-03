@@ -1,7 +1,11 @@
 import { Contact } from "../models/Contact.js";
 
-export async function listContacts() {
-  const data = await Contact.find({});
+export async function listContacts(filter = {}, query = {}) {
+  const data = await Contact.find(
+    filter,
+    "name email phone favorite",
+    query
+  ).populate("owner", "email");
 
   return data;
 }

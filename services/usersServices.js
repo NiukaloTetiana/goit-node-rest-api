@@ -11,3 +11,6 @@ export const createUser = async (body) => {
 
   return newUser;
 };
+
+export const updateUser = async (id, data) =>
+  User.findByIdAndUpdate(id, data, { new: true });

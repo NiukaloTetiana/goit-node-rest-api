@@ -9,14 +9,19 @@ import {
 } from "../services/contactsServices.js";
 
 const getAllContacts = async (req, res) => {
-  const result = await listContacts();
+  const { _id: owner } = req.user;
+  const { page = 1, limit = 20, favorite } = req.query;
+  const filter = favorite ? { owner, favorite } : { owner };
+  const skip = (page - 1) * limit;
+  const result = await listContacts(filter, { skip, limit });
 
   res.json(result);
 };
 
 const getOneContact = async (req, res) => {
   const { id } = req.params;
-  const result = await getContactById(id);
+  const { _id: owner } = req.user;
+  const result = await getContactById({ _id: id, owner });
 
   if (!result) {
     throw HttpError(404, "Not found");
@@ -27,7 +32,8 @@ const getOneContact = async (req, res) => {
 
 const deleteContact = async (req, res) => {
   const { id } = req.params;
-  const result = await removeContact(id);
+  const { _id: owner } = req.user;
+  const result = await removeContact({ _id: id, owner });
 
   if (!result) {
     throw HttpError(404, "Not found");
@@ -37,13 +43,15 @@ const deleteContact = async (req, res) => {
 };
 
 const createContact = async (req, res) => {
-  const result = await addContact(req.body);
+  const { _id: owner } = req.user;
+  const result = await addContact({ ...req.body, owner });
 
   res.status(201).json(result);
 };
 
 const updateContact = async (req, res) => {
   const { id } = req.params;
+  const { _id: owner } = req.user;
 
   if (!req.body || Object.keys(req.body).length === 0) {
     return res
@@ -51,7 +59,7 @@ const updateContact = async (req, res) => {
       .json({ message: "Body must have at least one field" });
   }
 
-  const result = await updateContactsById(id, req.body);
+  const result = await updateContactsById({ _id: id, owner }, req.body);
 
   if (!result) {
     throw HttpError(404, "Not found");
@@ -62,6 +70,7 @@ const updateContact = async (req, res) => {
 
 const updateFavorite = async (req, res) => {
   const { id } = req.params;
+  const { _id: owner } = req.user;
 
   if (!req.body || Object.keys(req.body).length === 0) {
     return res
@@ -69,7 +78,7 @@ const updateFavorite = async (req, res) => {
       .json({ message: "Body must have at least one field" });
   }
 
-  const result = await updateContactsById(id, req.body);
+  const result = await updateContactsById({ _id: id, owner }, req.body);
 
   if (!result) {
     throw HttpError(404, "Not found");
