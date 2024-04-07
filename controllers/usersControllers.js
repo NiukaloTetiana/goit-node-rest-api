@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
 import fs from "fs/promises";
 import path from "path";
+import Jimp from "jimp";
 
 import { HttpError } from "../helpers/HttpError.js";
 import { ctrlWrapper } from "../helpers/ctrlWrapper.js";
@@ -14,7 +15,7 @@ import {
 
 const { JWT_SECRET } = process.env;
 
-export const registerUser = async (req, res, next) => {
+export const registerUser = async (req, res) => {
   const { email, password } = req.body;
   const user = await findUserEmail({ email });
 
@@ -35,7 +36,7 @@ export const registerUser = async (req, res, next) => {
   });
 };
 
-export const loginUser = async (req, res, next) => {
+export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const user = await findUserEmail({ email });
 
@@ -94,6 +95,9 @@ const updateAvatar = async (req, res) => {
   const extention = originalname.split(".").pop();
   const filename = `${_id}.${extention}`;
   const resultUpload = path.resolve(avatarsDir, filename);
+
+  const image = await Jimp.read(tmpUpload);
+  await image.cover(250, 250).quality(90).writeAsync(tmpUpload);
 
   await fs.rename(tmpUpload, resultUpload);
 

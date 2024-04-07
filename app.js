@@ -9,7 +9,7 @@ import usersRouter from "./routes/usersRouter.js";
 
 const { DB_HOST, PORT = 3000 } = process.env;
 
-const app = express();
+export const app = express();
 
 app.use(morgan("tiny"));
 app.use(cors());
