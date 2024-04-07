@@ -1,5 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import gravatar from "gravatar";
+import fs from "fs/promises";
+import path from "path";
 
 import { HttpError } from "../helpers/HttpError.js";
 import { ctrlWrapper } from "../helpers/ctrlWrapper.js";
@@ -20,7 +23,12 @@ export const registerUser = async (req, res, next) => {
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
-  const newUser = await createUser({ ...req.body, password: hashPassword });
+  const avatarURL = gravatar.url(email);
+  const newUser = await createUser({
+    ...req.body,
+    password: hashPassword,
+    avatarURL,
+  });
 
   res.status(201).json({
     user: { email: newUser.email, subscription: newUser.subscription },
@@ -78,10 +86,29 @@ const subscriptionUpdate = async (req, res) => {
   });
 };
 
+const avatarsDir = path.resolve("public", "avatars");
+
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: tmpUpload, originalname } = req.file;
+  const extention = originalname.split(".").pop();
+  const filename = `${_id}.${extention}`;
+  const resultUpload = path.resolve(avatarsDir, filename);
+
+  await fs.rename(tmpUpload, resultUpload);
+
+  const avatarURL = path.resolve("avatars", filename);
+
+  await updateUser(_id, { avatarURL });
+
+  res.json({ avatarURL });
+};
+
 export default {
   registerUser: ctrlWrapper(registerUser),
   loginUser: ctrlWrapper(loginUser),
   getCurrent: ctrlWrapper(getCurrent),
   logoutUser: ctrlWrapper(logoutUser),
   subscriptionUpdate: ctrlWrapper(subscriptionUpdate),
+  updateAvatar: ctrlWrapper(updateAvatar),
 };
