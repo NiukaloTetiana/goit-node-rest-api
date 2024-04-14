@@ -7,6 +7,7 @@ import {
   registerUserSchema,
   loginUserSchema,
   subscriptionUserSchema,
+  emailUserSchema,
 } from "../schemas/usersSchemas.js";
 import { upload } from "../middlewares/upload.js";
 
@@ -16,6 +17,14 @@ usersRouter.post(
   "/register",
   validateBody(registerUserSchema),
   usersControllers.registerUser
+);
+
+usersRouter.get("/verify/:verificationToken", usersControllers.verifyEmail);
+
+usersRouter.post(
+  "/verify",
+  validateBody(emailUserSchema),
+  usersControllers.resendVerifyEmail
 );
 
 usersRouter.post(
